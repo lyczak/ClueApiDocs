@@ -1,0 +1,133 @@
+swagger: "2.0"
+info:
+  description: "This is the user-data API used by the [Clue app](https://helloclue.com). The documentation listed here is currently a work in progress and will likely not ever be exhaustive."
+  version: "0.1.0"
+  title: "Clue API"
+host: "api.helloclue.com"
+tags:
+- name: "access-tokens"
+  description: "Log in and log out"
+schemes:
+- "https"
+paths:
+  /access-tokens:
+    post:
+      tags:
+      - "access-tokens"
+      summary: "Log in to obtain a new access token"
+      operationId: "logIn"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "User account email address and password"
+        required: true
+        schema:
+          $ref: "#/definitions/EmailPassword"
+      responses:
+        "201":
+          description: "Log in successful, new access token created"
+          schema:
+            $ref: "#/definitions/AccessTokenUserResponse"
+        "400":
+          description: "Bad request, the email or password did not pass input validation"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        "401":
+          description: "Unauthorized, the email or password was incorrect"
+          schema:
+            type: "object"
+        "500":
+          description: "Server error, likely due to a malformed request"
+          schema:
+            type: "object"
+  /access-tokens/{access-token}:
+    delete:
+      tags:
+      - "access-tokens"
+      summary: "Log out, deleting access token"
+      operationId: "logOut"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "access-token"
+        in: "path"
+        description: "The current active access token"
+        required: true
+        type: "string"
+      security:
+      - access-token: []
+      responses:
+        "204":
+          description: "Log out was successful, token is deleted"
+        "401":
+          description: "Unauthorized, provided token in the Header is invalid"
+securityDefinitions:
+  access-token:
+    type: "apiKey"
+    name: "Authorization"
+    in: "header"
+    description: "The access-token, prefaced by \"Token \""
+definitions:
+  ErrorResponse:
+    type: "object"
+    properties:
+      errors:
+        type: "array"
+        items:
+          type: "object"
+          properties:
+            message:
+              type: "string"
+            dataPath:
+              type: "string"
+              description: "the specific part of the request body that caused the problem (if applicable)"
+            params:
+              type: "object"
+              description: "a set of parameters the problematic part of the request body should follow (if applicable)"
+  EmailPassword:
+    type: "object"
+    properties:
+      email:
+        type: "string"
+      password:
+        type: "string"
+  AccessTokenUserResponse:
+    type: "object"
+    properties:
+      access_token:
+        type: "string"
+      analytics_id:
+        type: "string"
+      user:
+        type: "object"
+        properties:
+          id:
+            type: "string"
+          analytics_id:
+            type: "string"
+          email:
+            type: "string"
+          first_name:
+            type: "string"
+          last_name:
+            type: "string"
+          consented_to_version:
+            type: "string"
+          consented_to_version_tos:
+            type: "string"
+          needs_verification:
+            type: "boolean"
+          uses_lite_mode:
+            type: "boolean"
+          has_password:
+            type: "boolean"
+          created_at:
+            type: "string"
+          updated_ad:
+            type: "string"
