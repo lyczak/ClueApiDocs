@@ -7,13 +7,15 @@ host: "api.helloclue.com"
 tags:
 - name: "access-tokens"
   description: "Log in and log out"
+- name: "sync"
+  description: "Upload and download cycle data"
 schemes:
 - "https"
 paths:
   /access-tokens:
     post:
       tags:
-      - "access-tokens"
+      - "access tokens"
       summary: "Log in to obtain a new access token"
       operationId: "logIn"
       consumes:
@@ -44,10 +46,10 @@ paths:
           description: "Server error, likely due to a malformed request"
           schema:
             type: "object"
-  /access-tokens/{access-token}:
+  /access-tokens/{access_token}:
     delete:
       tags:
-      - "access-tokens"
+      - "access tokens"
       summary: "Log out, deleting access token"
       operationId: "logOut"
       consumes:
@@ -55,7 +57,7 @@ paths:
       produces:
       - "application/json"
       parameters:
-      - name: "access-token"
+      - name: "access_token"
         in: "path"
         description: "The current active access token"
         required: true
@@ -65,6 +67,35 @@ paths:
       responses:
         "204":
           description: "Log out was successful, token is deleted"
+        "401":
+          description: "Unauthorized, provided token in the Header is invalid"
+  /sync/{user_id}:
+    patch:
+      tags:
+      - "sync"
+      summary: "Push new or fetch existing cycle data"
+      operationId: "pushData"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "user_id"
+        in: "path"
+        description: "The current user's unique ID"
+        required: true
+        type: "string"
+      - in: "body"
+        name: "body"
+        schema:
+          $ref: "#/definitions/SyncDataTransfer"
+      security:
+      - access-token: []
+      responses:
+        "200":
+          description: "The cycle data was successfully updated"
+          schema:
+            $ref: "#/definitions/SyncDataTransfer"
         "401":
           description: "Unauthorized, provided token in the Header is invalid"
 securityDefinitions:
@@ -84,12 +115,39 @@ definitions:
           properties:
             message:
               type: "string"
+              example: "should NOT be shorter than 1 characters"
             dataPath:
               type: "string"
+              example: ".password"
               description: "the specific part of the request body that caused the problem (if applicable)"
             params:
               type: "object"
+              example:
+                properties:
+                  limit: 1
               description: "a set of parameters the problematic part of the request body should follow (if applicable)"
+  SyncDataTransfer:
+    type: "object"
+    properties:
+      change_sets:
+        type: "object"
+        properties:
+          measurements:
+            type: "array"
+            items:
+              $ref: "#/definitions/CycleDataMeasurement"
+            readOnly: true
+  CycleDataMeasurement:
+    type: "object"
+    properties:
+      date:
+        type: "string"
+        example: "2021-01-23"
+      type:
+        type: "string"
+        enum: [low_appetite, perineum_pain, ovulation_test_neg, ovulation_test_pos, big_night_party, shortness_of_breath, upper_back_pain, injury_ailment, breastfed, bottlefed, vomiting, constipated, dizziness, meditation, pregnancy_test_neg, pregnancy_test_pos, confident_pregnancy_mood, super_smell, super_taste, low_milk_production, prenatal_vitamins_pregnancy_supplements, bleeding_gums, stuffy_nose, distracted, woke_up_refreshed, leg_cramps, non_food_cravings, worried_pregnancy_mood, contractions, aching_postpartum_nipples, biking, cramps, vitamin_d_pregnancy_supplements, creative_pregnancy_mind, supportive_social, ring_hbc, clogged_duct, painful_pregnancy_breasts, ob_gyn_appointment, headache, fine_postpartum_nipples, high_blood_pressure, pain_medication, peaceful_pregnancy_mood, excited_postpartum_mind, period, acne_skin, cycle_exclusion, energized, nose_bleeds, pad_collection_method, withdrawn_social, incision_pain, sweet_craving, food_aversion, weight, panty_liner_collection_method, focused, overwhelmed_postpartum_mood, pelvic_pressure, forgetful_pregnancy_mind, high_sex_drive, withdrawal_sex, motivated, high_energy, itchy_skin, peaceful_postpartum_mood, patch_hbc, swollen_postpartum_breasts, unmotivated, pill_hbc, tender_breasts, unproductive, cigarettes, restless_legs, menstrual_cup_collection_method, vivid_dreams, nipple_discharge_postpartum, normal_poop, diarrhea, sensitive_emotion, fine_pregnancy_breasts, hot_flashes, low_energy, dry_hair, dry_skin, vitamin_d_postpartum_supplements, cold_flu_ailment, heart_palpitations, confident_postpartum_mood, swimming, allergy_ailment, bloated, painful_postpartum_breasts, bbt, iud, pms, sad, tag, calm, yoga, hangover, overwhelmed_pregnancy_mood, lower_back_pain, fluid, gassy, happy, sleep, injection_hbc, nauseated, pregnancy_glow, oily_hair, oily_skin, swollen_pregnancy_breasts, folic_acid_postpartum_supplements, heartburn, drinks_party, mastitis, conflict_social, swelling_arms_and_legs, tampon_collection_method, tingling_sensations_arms_and_legs, cold_flu_medication, woke_up_tired, date_appointment, iron_pregnancy_supplements, frequent_urination, great_poop, yellow_discharge, forgetful_postpartum_mind, pregnancy_cycle, brownish_discharge, chocolate_craving, bonding_postpartum_mind, depressed_postpartum_mood, hiccups, aching_pregnancy_nipples, low_blood_pressure, ovulation_pain, bonding_pregnancy_mind, iron_postpartum_supplements, bleeding_postpartum_nipples, prenatal_vitamins_postpartum_supplements, vacation_appointment, sociable, dark_bleeding, excited_pregnancy_mind, good_hair, good_skin, antibiotic_medication, exhausted, low_movement, protected_sex, running, carbs_craving, doctor_appointment, great_digestion, increased_thirst, night_sweats, creative_postpartum_mind, antihistamine_medication, productive, round_ligament_pain, average_movement, stressed, fever_ailment, high_milk_production, painful_intercourse, salty_craving, frequent_movement, birth_control, folic_acid_pregnancy_supplements, unprotected_sex, vaginal_pain, unusual_cravings, high_appetite, blood_clot_discharge, bad_hair, intense_orgasms]
+      $removed:
+        type: "boolean"
   EmailPassword:
     type: "object"
     properties:
@@ -102,15 +160,19 @@ definitions:
     properties:
       access_token:
         type: "string"
+        example: "3571b3j3-h829-3ma4-4alk-k3f4af1a452f|vIJHBAfu8NJnfejiFfjkeefj82EFJSDNFJNSJDNFOOA6NKJN"
       analytics_id:
         type: "string"
+        example: "clue-fnje801jnfa892jntkjg8f1uhf89ajd"
       user:
         type: "object"
         properties:
           id:
             type: "string"
+            example: "3571b3j3-h829-3ma4-4alk-k3f4af1a452f"
           analytics_id:
             type: "string"
+            example: "clue-fnje801jnfa892jntkjg8f1uhf89ajd"
           email:
             type: "string"
           first_name:
@@ -119,15 +181,22 @@ definitions:
             type: "string"
           consented_to_version:
             type: "string"
+            example: "201201"
           consented_to_version_tos:
             type: "string"
+            example: "201201"
           needs_verification:
             type: "boolean"
+            default: false
           uses_lite_mode:
             type: "boolean"
+            default: false
           has_password:
             type: "boolean"
+            default: true
           created_at:
             type: "string"
-          updated_ad:
+            example: "2021-01-11T23:23:23.232Z"
+          updated_at:
             type: "string"
+            example: "2021-01-11T23:23:23.232Z"
