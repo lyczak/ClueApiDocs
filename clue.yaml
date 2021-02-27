@@ -85,8 +85,19 @@ paths:
         description: "The current user's unique ID"
         required: true
         type: "string"
+      - name: "sync_checkpoint"
+        in: "query"
+        description: "Not sure how this works yet"
+        required: false
+        type: "string"
+      - name: "Sync-Hash"
+        in: "header"
+        description: "Not sure how this works yet"
+        required: false
+        type: "string"
       - in: "body"
         name: "body"
+        required: true
         schema:
           $ref: "#/definitions/SyncDataTransfer"
       security:
@@ -137,6 +148,10 @@ definitions:
             items:
               $ref: "#/definitions/CycleDataMeasurement"
             readOnly: true
+      sync_checkpoint:
+        type: "string"
+        example: "2021-01-23 23:23:23.123123"
+        readOnly: true
   CycleDataMeasurement:
     type: "object"
     properties:
