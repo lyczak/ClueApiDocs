@@ -1,6 +1,6 @@
 swagger: "2.0"
 info:
-  description: "This is the user-data API used by the [Clue app](https://helloclue.com). The documentation listed here is currently a work in progress and will likely not ever be exhaustive."
+  description: "This is the user-data API used by the [Clue app](https://helloclue.com). The documentation listed here is currently a work in progress and will likely not ever be exhaustive. Further information regarding this reverse-engineering effort can be found [here](https://github.com/lyczak/ClueApiDocs). Please note that while I am trying to document things in detail, it is impossible for me to find every possible server response for every endpoint. Also, because this is a private API, it may (and probably will) be subject to changes not accounted for here."
   version: "0.1.0"
   title: "Clue API"
 host: "api.helloclue.com"
@@ -82,24 +82,22 @@ paths:
       parameters:
       - name: "user_id"
         in: "path"
-        description: "The current user's unique ID"
+        description: "The current user's unique ID. I don't think there would be any reason to provide the ID of a user other than the one that's signed in, but I haven't tried."
         required: true
-        type: "string"
-      - name: "sync_checkpoint"
-        in: "query"
-        description: "Not sure how this works yet"
-        required: false
-        type: "string"
-      - name: "Sync-Hash"
-        in: "header"
-        description: "Not sure how this works yet"
-        required: false
         type: "string"
       - in: "body"
         name: "body"
         required: true
         schema:
           $ref: "#/definitions/SyncDataTransfer"
+      - name: "sync_checkpoint"
+        in: "query"
+        description: "The sync_checkpoint the server issued last time this client synced in the form `2021-01-23 23:23:23.123123` (and query-string encoded). The server only responds with measurements taken after this timestamp, so exclude this parameter to recieve all measurements ever recorded."
+        type: "string"
+      - name: "Sync-Hash"
+        in: "header"
+        type: "string"
+        description: "Some sort of message checksum in the form `v1=all:e07f24ac|prd:0|rel:2ca91fe4`. The official client includes this in a request but it doesn't seem to be necessary in order to send valid requests. The 8-character string after `all:` seems to be the only part that changes between requests."
       security:
       - access-token: []
       responses:
@@ -139,6 +137,8 @@ definitions:
               description: "a set of parameters the problematic part of the request body should follow (if applicable)"
   SyncDataTransfer:
     type: "object"
+    required:
+    - change_sets
     properties:
       change_sets:
         type: "object"
@@ -147,24 +147,39 @@ definitions:
             type: "array"
             items:
               $ref: "#/definitions/CycleDataMeasurement"
-            readOnly: true
       sync_checkpoint:
         type: "string"
         example: "2021-01-23 23:23:23.123123"
         readOnly: true
   CycleDataMeasurement:
     type: "object"
+    required:
+    - date
+    - type
     properties:
       date:
         type: "string"
         example: "2021-01-23"
       type:
         type: "string"
-        enum: [low_appetite, perineum_pain, ovulation_test_neg, ovulation_test_pos, big_night_party, shortness_of_breath, upper_back_pain, injury_ailment, breastfed, bottlefed, vomiting, constipated, dizziness, meditation, pregnancy_test_neg, pregnancy_test_pos, confident_pregnancy_mood, super_smell, super_taste, low_milk_production, prenatal_vitamins_pregnancy_supplements, bleeding_gums, stuffy_nose, distracted, woke_up_refreshed, leg_cramps, non_food_cravings, worried_pregnancy_mood, contractions, aching_postpartum_nipples, biking, cramps, vitamin_d_pregnancy_supplements, creative_pregnancy_mind, supportive_social, ring_hbc, clogged_duct, painful_pregnancy_breasts, ob_gyn_appointment, headache, fine_postpartum_nipples, high_blood_pressure, pain_medication, peaceful_pregnancy_mood, excited_postpartum_mind, period, acne_skin, cycle_exclusion, energized, nose_bleeds, pad_collection_method, withdrawn_social, incision_pain, sweet_craving, food_aversion, weight, panty_liner_collection_method, focused, overwhelmed_postpartum_mood, pelvic_pressure, forgetful_pregnancy_mind, high_sex_drive, withdrawal_sex, motivated, high_energy, itchy_skin, peaceful_postpartum_mood, patch_hbc, swollen_postpartum_breasts, unmotivated, pill_hbc, tender_breasts, unproductive, cigarettes, restless_legs, menstrual_cup_collection_method, vivid_dreams, nipple_discharge_postpartum, normal_poop, diarrhea, sensitive_emotion, fine_pregnancy_breasts, hot_flashes, low_energy, dry_hair, dry_skin, vitamin_d_postpartum_supplements, cold_flu_ailment, heart_palpitations, confident_postpartum_mood, swimming, allergy_ailment, bloated, painful_postpartum_breasts, bbt, iud, pms, sad, tag, calm, yoga, hangover, overwhelmed_pregnancy_mood, lower_back_pain, fluid, gassy, happy, sleep, injection_hbc, nauseated, pregnancy_glow, oily_hair, oily_skin, swollen_pregnancy_breasts, folic_acid_postpartum_supplements, heartburn, drinks_party, mastitis, conflict_social, swelling_arms_and_legs, tampon_collection_method, tingling_sensations_arms_and_legs, cold_flu_medication, woke_up_tired, date_appointment, iron_pregnancy_supplements, frequent_urination, great_poop, yellow_discharge, forgetful_postpartum_mind, pregnancy_cycle, brownish_discharge, chocolate_craving, bonding_postpartum_mind, depressed_postpartum_mood, hiccups, aching_pregnancy_nipples, low_blood_pressure, ovulation_pain, bonding_pregnancy_mind, iron_postpartum_supplements, bleeding_postpartum_nipples, prenatal_vitamins_postpartum_supplements, vacation_appointment, sociable, dark_bleeding, excited_pregnancy_mind, good_hair, good_skin, antibiotic_medication, exhausted, low_movement, protected_sex, running, carbs_craving, doctor_appointment, great_digestion, increased_thirst, night_sweats, creative_postpartum_mind, antihistamine_medication, productive, round_ligament_pain, average_movement, stressed, fever_ailment, high_milk_production, painful_intercourse, salty_craving, frequent_movement, birth_control, folic_acid_pregnancy_supplements, unprotected_sex, vaginal_pain, unusual_cravings, high_appetite, blood_clot_discharge, bad_hair, intense_orgasms]
+        enum: [weight, low_appetite, perineum_pain, ovulation_test_neg, ovulation_test_pos, big_night_party, shortness_of_breath, upper_back_pain, injury_ailment, breastfed, bottlefed, vomiting, constipated, dizziness, meditation, pregnancy_test_neg, pregnancy_test_pos, confident_pregnancy_mood, super_smell, super_taste, low_milk_production, prenatal_vitamins_pregnancy_supplements, bleeding_gums, stuffy_nose, distracted, woke_up_refreshed, leg_cramps, non_food_cravings, worried_pregnancy_mood, contractions, aching_postpartum_nipples, biking, cramps, vitamin_d_pregnancy_supplements, creative_pregnancy_mind, supportive_social, ring_hbc, clogged_duct, painful_pregnancy_breasts, ob_gyn_appointment, headache, fine_postpartum_nipples, high_blood_pressure, pain_medication, peaceful_pregnancy_mood, excited_postpartum_mind, period, acne_skin, cycle_exclusion, energized, nose_bleeds, pad_collection_method, withdrawn_social, incision_pain, sweet_craving, food_aversion, panty_liner_collection_method, focused, overwhelmed_postpartum_mood, pelvic_pressure, forgetful_pregnancy_mind, high_sex_drive, withdrawal_sex, motivated, high_energy, itchy_skin, peaceful_postpartum_mood, patch_hbc, swollen_postpartum_breasts, unmotivated, pill_hbc, tender_breasts, unproductive, cigarettes, restless_legs, menstrual_cup_collection_method, vivid_dreams, nipple_discharge_postpartum, normal_poop, diarrhea, sensitive_emotion, fine_pregnancy_breasts, hot_flashes, low_energy, dry_hair, dry_skin, vitamin_d_postpartum_supplements, cold_flu_ailment, heart_palpitations, confident_postpartum_mood, swimming, allergy_ailment, bloated, painful_postpartum_breasts, bbt, iud, pms, sad, tag, calm, yoga, hangover, overwhelmed_pregnancy_mood, lower_back_pain, fluid, gassy, happy, sleep, injection_hbc, nauseated, pregnancy_glow, oily_hair, oily_skin, swollen_pregnancy_breasts, folic_acid_postpartum_supplements, heartburn, drinks_party, mastitis, conflict_social, swelling_arms_and_legs, tampon_collection_method, tingling_sensations_arms_and_legs, cold_flu_medication, woke_up_tired, date_appointment, iron_pregnancy_supplements, frequent_urination, great_poop, yellow_discharge, forgetful_postpartum_mind, pregnancy_cycle, brownish_discharge, chocolate_craving, bonding_postpartum_mind, depressed_postpartum_mood, hiccups, aching_pregnancy_nipples, low_blood_pressure, ovulation_pain, bonding_pregnancy_mind, iron_postpartum_supplements, bleeding_postpartum_nipples, prenatal_vitamins_postpartum_supplements, vacation_appointment, sociable, dark_bleeding, excited_pregnancy_mind, good_hair, good_skin, antibiotic_medication, exhausted, low_movement, protected_sex, running, carbs_craving, doctor_appointment, great_digestion, increased_thirst, night_sweats, creative_postpartum_mind, antihistamine_medication, productive, round_ligament_pain, average_movement, stressed, fever_ailment, high_milk_production, painful_intercourse, salty_craving, frequent_movement, birth_control, folic_acid_pregnancy_supplements, unprotected_sex, vaginal_pain, unusual_cravings, high_appetite, blood_clot_discharge, bad_hair, intense_orgasms]
+      body:
+        type: "object"
+        example:
+          is_kilogram: true
+          value: 56.789876
+        description: "This parameter may be required depending on the measurement's **type** (usually it can be omitted). It's data-type varies. For a 'tag' **type** this would be a string representing the tag content. For a 'weight' **type**, this would be an object like the example shown here."
+      updated_at:
+        readOnly: true
       $removed:
         type: "boolean"
+        default: true
+        description: "Use indicate the removal of an existing measurement. Only define this if true."
   EmailPassword:
     type: "object"
+    required:
+    - email
+    - password
     properties:
       email:
         type: "string"
