@@ -12,3 +12,5 @@ Spying on requests coming out of the app is a little challenging because it come
 7. Use [Uber Apk Signer](https://github.com/patrickfav/uber-apk-signer) to sign the modified Apk (`java -jar uber-apk-signer.jar --apks clueapp/dist/clueapp_modified.apk`)
 8. Install the modified Apk onto an Android device or emulator.
 9. Setup the Android device or emulator to pass traffic through your debugging proxy, and enable SSL proxying for `https://api.helloclue.com:443`.
+
+Optionally, you could also find information regarding application logic and API models by generating a JAR file from the Clue app's Apk using something like [dex2jar](https://github.com/pxb1988/dex2jar). API endpoints are listed in `com.biowink.clue.data.account.api.ApiServiceV2` and API models in `com.biowink.clue.data.account.json.RequestBody` and `ResponseBody`. Other API-endpoint-related things include `com.biowink.clue.sync.recovery.api.SyncRecoveryService` and the `/doctors-report` endpoint but I don't recall where that was documented.
