@@ -4,4 +4,4 @@ README.md linguist-vendored
 index.html linguist-vendored
 swagger-ui.version linguist-vendored
 
-*.yaml linguist-vendored=false
+*.yaml linguist-detectable=true
