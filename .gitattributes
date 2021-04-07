@@ -1,0 +1,7 @@
+.github/* linguist-vendored
+dist/* linguist-vendored
+README.md linguist-vendored
+index.html linguist-vendored
+swagger-ui.version linguist-vendored
+
+*.yaml linguist-language=YAML
